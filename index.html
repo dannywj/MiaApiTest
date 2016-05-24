@@ -13,12 +13,12 @@
     <link href="css/jsonFormater.css" type="text/css" rel="stylesheet"/>
     <script src="js/config.js" type="text/javascript"></script>
     <!-- Bootstrap core CSS -->
-    <link href="//cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://cdn.bootcss.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
-    <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
-    <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <script src="http://cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="http://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
 
     <style>
@@ -50,7 +50,7 @@
 
             <div class="input-group">
                 <span class="input-group-addon" id="basic-addon1"><span style="color: red">URL:</span> http://api.miyabaobei.com/</span>
-                <input id="txt_api" type="text" class="form-control url" placeholder="url suffix"
+                <input id="txt_api" type="text" class="form-control url" placeholder="url suffix" autocomplete="off"
                        aria-describedby="basic-addon1" style="width: 180%"
                        value="banner/index">
             </div>
@@ -107,10 +107,11 @@
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
-<script src="//cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
-<script src="//cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="http://cdn.bootcss.com/jquery/1.11.3/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script src="js/bootstrap.autocomplete.js"></script>
 <script>
+
     var gPlatForm = 'android';
     var gVersion = default_version;
     var gKeyCount = 1;
@@ -119,19 +120,26 @@
         init();
 
         $("#btn_call").click(function () {
-            if ($("#txt_api").val() == '') {
+            var apiname = $("#txt_api").val();
+            apiname = $.trim(apiname);
+            if (apiname == '') {
                 alert('please input url suffix');
                 return false;
             }
-
+            var last_char = apiname.charAt(apiname.length - 1);
+            if (last_char == '/') {
+                apiname = apiname.substring(0, apiname.length - 1);
+            }
             var data = {};
             var obj = getAllKeys();
+
             data.api_name = 'call';
-            data.api = $("#txt_api").val();
+            data.api = apiname;
             data.version = getVersion();
             data.params = JSON.stringify(obj);
             data.base_params = $("#txt_base_params").val();
             saveUserApiList(data.api);
+            saveUserApiParams(data);
             $("#sp_result").html('<img src="images/loading.gif" style="display: block; margin: 0 auto;">');
             $('.gotoTopLink').show();
             $.post('api.php?t=' + new Date(), {data: data}, function (re) {
@@ -199,7 +207,11 @@
             setValue: function (item) {
                 return {'data-value': item, 'real-value': item};
             },
-            items:12
+            updater: function (item) {
+                setApiParams(item);
+                return item;
+            },
+            items: 20
         });
     }
 
@@ -257,7 +269,6 @@
         str += '\n}';
         $("#txt_base_params").val(str);
         $("#txt_base_params").attr('rows', i + 2);
-        //$('textarea').autoHeight();
     }
 
     function getVersion() {
@@ -296,7 +307,7 @@
     }
 
     function jsonShow($json) {
-        if(isJson($json)){
+        if (isJson($json)) {
             $("#sp_result_div").removeClass('panel-info');
             $("#sp_result_div").removeClass('panel-danger');
             $("#sp_result_div").addClass('panel-success');
@@ -306,7 +317,7 @@
             };
             var jf = new JsonFormater(options); //创建对象
             jf.doFormat($json); //格式化json
-        }else {
+        } else {
             $("#sp_result_div").removeClass('panel-info');
             $("#sp_result_div").removeClass('panel-success');
             $("#sp_result_div").addClass('panel-danger');
@@ -376,6 +387,54 @@
         catch (e) {
             return false;
         }
+    }
+
+    function setApiParams(api_name) {
+        var local_params = localStorage.getItem('api_params');
+        if (local_params) {
+            local_params = JSON.parse(local_params);
+            if (local_params[api_name]) {
+                var api = local_params[api_name];
+                var base_params = api.base_params;
+                var custom_params = api.params;
+
+                //set base params
+                var str = '{\n';
+                var temp = [];
+                var i = 0;
+                for (var s in base_params) {
+                    i++;
+                    temp.push('\t"' + s + '"' + ' : ' + '"' + base_params[s] + '"');
+                }
+                str += temp.join(',\n');
+                str += '\n}';
+                $("#txt_base_params").val(str);
+                $("#txt_base_params").attr('rows', i + 2);
+
+                // set custom params
+                setCustomParamsEmpty();
+                var html = getKeyInputHtml(custom_params);
+                $("#span_keys").append(html);
+            }
+        }
+    }
+
+    function saveUserApiParams(data) {
+        var local_params = localStorage.getItem('api_params');
+        if (local_params) {
+            local_params = JSON.parse(local_params);
+        } else {
+            local_params = {};
+        }
+        var api = {};
+        api.base_params = JSON.parse($("#txt_base_params").val());
+        api.params = getAllKeys();
+        local_params[data.api] = api;
+        localStorage.setItem('api_params', JSON.stringify(local_params));
+    }
+
+    function setCustomParamsEmpty() {
+        $("#span_keys").empty();
     }
 </script>
 </body>
