@@ -16,6 +16,12 @@ if ($api_name == 'call') { // 接口调用
     $version = trim($data['version']);
     $version = str_replace('.', '_', $version);
     $subParams = json_decode($params, true);
+    // 防止php json_decode 以后自动将长数字转换成科学记数法
+    foreach ($subParams as $key => $val) {
+        if (!is_array($val) && !is_string($val) && !empty($val)) {
+            $subParams[$key] = number_format($val, 0, '', '');
+        }
+    }
     $base_params = trim($data['base_params']);
     if (!isJson($base_params)) {
         exit('base_params is invalid json');
@@ -79,7 +85,7 @@ function curl_post($url, $post = NULL, $options = array()) {
     curl_setopt_array($ch, ($options + $defaults));
     if (!$result = curl_exec($ch)) {
         trigger_error(curl_error($ch));
-        var_dump(curl_error($ch),curl_errno($ch));
+        var_dump(curl_error($ch), curl_errno($ch));
     }
     curl_close($ch);
     return $result;

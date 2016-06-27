@@ -4,11 +4,11 @@
 
 //版本列表
 var version_list = [
-    '4.0', '4.1', '4.1.1', '4.2'
+     '4.1', '4.2','4.3'
 ];
 
 //默认版本号
-var default_version = '4.1';
+var default_version = '4.3';
 
 //默认参数列表
 var default_base_params = {

@@ -31,6 +31,15 @@
             width: 48px;
             background: url("images/r_top.png");
         }
+        .gotoTopLinkButton {
+            position: fixed;
+            left: 95%;
+            bottom: 15%;
+            display: block;
+            height: 48px;
+            width: 48px;
+            background: url("images/firebug.png");
+        }
     </style>
 </head>
 
@@ -101,6 +110,7 @@
     </div>
 
     <a class="gotoTopLink" href="javascript:scroll(0,0)"></a>
+    <a id="btn_recall" class="gotoTopLinkButton" href="javascript:void(0)"></a>
 
 </div> <!-- /container -->
 
@@ -119,7 +129,7 @@
     $(function () {
         init();
 
-        $("#btn_call").click(function () {
+        $("#btn_call,#btn_recall").click(function () {
             var apiname = $("#txt_api").val();
             apiname = $.trim(apiname);
             if (apiname == '') {
@@ -132,16 +142,18 @@
             }
             var data = {};
             var obj = getAllKeys();
-
             data.api_name = 'call';
             data.api = apiname;
             data.version = getVersion();
             data.params = JSON.stringify(obj);
+            console.log(data.params);
             data.base_params = $("#txt_base_params").val();
             saveUserApiList(data.api);
             saveUserApiParams(data);
             $("#sp_result").html('<img src="images/loading.gif" style="display: block; margin: 0 auto;">');
             $('.gotoTopLink').show();
+            $('.gotoTopLinkButton').show();
+            console.log(data);
             $.post('api.php?t=' + new Date(), {data: data}, function (re) {
                 jsonShow(re);
             });
@@ -190,6 +202,7 @@
         initBaseParam();
         initAutoComplete();
         $('.gotoTopLink').hide();
+        $('.gotoTopLinkButton').hide();
     }
 
     function initAutoComplete() {
@@ -222,7 +235,9 @@
         } else {
             local_list = [];
         }
-        return $.merge($.merge([], api_list), local_list);
+        var final_list = $.merge($.merge([], api_list), local_list);
+        final_list.sort();
+        return final_list;
     }
 
     function saveUserApiList(api) {
@@ -291,7 +306,8 @@
         var obj = {};
         for (var i = 0; i < gKeyCount; i++) {
             var k = $("#key_form_" + (i + 1)).find(".kk").val();
-            var v = $("#key_form_" + (i + 1)).find(".vv").val();
+            //var v = '"' + ($("#key_form_" + (i + 1)).find(".vv").val()) + '"';
+            var v = ($("#key_form_" + (i + 1)).find(".vv").val());
             if (k) {
                 if (isJson(v)) {
                     v = JSON.parse(v);
@@ -381,7 +397,7 @@
 
     function isJson(str) {
         try {
-            var check_is_json = eval('(' + str + ')');
+            var check_is_json = JSON.parse(str);
             return true;
         }
         catch (e) {
