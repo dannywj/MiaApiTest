@@ -31,6 +31,7 @@
             width: 48px;
             background: url("images/r_top.png");
         }
+
         .gotoTopLinkButton {
             position: fixed;
             left: 95%;
@@ -67,6 +68,9 @@
         <p>
             Base params:&nbsp;
             <button id="btn_show" type="button" class="btn btn-success btn-sm"> edit</button>
+            <button id="btn_login" type="button" class="btn btn-info btn-sm"> login</button>
+            &nbsp;&nbsp;
+            <span id="sp_login_result" style="color: #ff0000; font-size: 14px;margin-left: 20px;"></span>
         <div id="sp_edit" style="display: none;">
             <textarea id="txt_base_params" class="form-control" style="font-size: 12px;">
             </textarea>
@@ -146,7 +150,6 @@
             data.api = apiname;
             data.version = getVersion();
             data.params = JSON.stringify(obj);
-            console.log(data.params);
             data.base_params = $("#txt_base_params").val();
             saveUserApiList(data.api);
             saveUserApiParams(data);
@@ -193,6 +196,10 @@
                     alert('invalid value');
                 }
             });
+        });
+
+        $("#btn_login").click(function () {
+            autoLogin();
         });
     });
 
@@ -267,7 +274,12 @@
     function initShow() {
         $("#btn_show").click(function () {
             $("#sp_edit").slideToggle("slow");
-            $("#btn_show").hide();
+            var txt = $("#btn_show").html();
+            if (txt == 'hide') {
+                $("#btn_show").html('edit');
+            } else {
+                $("#btn_show").html('hide');
+            }
         });
     }
 
@@ -451,6 +463,38 @@
 
     function setCustomParamsEmpty() {
         $("#span_keys").empty();
+    }
+
+    function autoLogin() {
+        var data = {};
+        var obj = {
+            "name": default_login_username,
+            "password": default_login_password
+        };
+        data.api_name = 'call';
+        data.api = 'account/login';
+        data.version = getVersion();
+        data.params = JSON.stringify(obj);
+        data.base_params = $("#txt_base_params").val();
+        $.post('api.php?t=' + new Date(), {data: data}, function (re) {
+            console.log('login_result:' + re);
+            var auth_session = '';
+            if (isJson(re)) {
+                var resultObj = JSON.parse(re);
+                if (resultObj.code == 200) {
+                    auth_session = resultObj.content.auth_session;
+                    var base_params = $("#txt_base_params").val();
+                    base_params_obj = JSON.parse(base_params);
+                    var old_session = base_params_obj.auth_session;
+                    var new_base_params = base_params.replace(old_session, auth_session);
+                    $("#txt_base_params").val(new_base_params);
+                    //$("#sp_login_result").html('login success');
+                    $("#btn_login").addClass('disabled');
+                    $("#btn_login").attr({"disabled": "disabled"});
+                    $("#btn_login").html('login success');
+                }
+            }
+        });
     }
 </script>
 </body>

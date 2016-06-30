@@ -4,7 +4,7 @@
 
 //版本列表
 var version_list = [
-     '4.1', '4.2','4.3'
+    '4.1', '4.2', '4.3'
 ];
 
 //默认版本号
@@ -32,3 +32,7 @@ var api_list = [
     'store/info',
     'index/activation'
 ];
+
+//danny wang test
+var default_login_username = 'bWlhYmFieTE1ODEwODEwNzgx';
+var default_login_password = 'bWlhYmFieTExMTExMQ==';
