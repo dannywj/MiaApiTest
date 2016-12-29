@@ -84,8 +84,11 @@ function curl_post($url, $post = NULL, $options = array()) {
     $ch = curl_init();
     curl_setopt_array($ch, ($options + $defaults));
     if (!$result = curl_exec($ch)) {
-        trigger_error(curl_error($ch));
+        $http_info= curl_getinfo($ch);
+        var_dump('CURL ERROR');
+        var_dump($http_info);
         var_dump(curl_error($ch), curl_errno($ch));
+        trigger_error(curl_error($ch));
     }
     curl_close($ch);
     return $result;

@@ -62,7 +62,7 @@
                 <span class="input-group-addon" id="basic-addon1"><span style="color: red">URL:</span> http://api.miyabaobei.com/</span>
                 <input id="txt_api" type="text" class="form-control url" placeholder="url suffix" autocomplete="off"
                        aria-describedby="basic-addon1" style="width: 180%"
-                       value="banner/index">
+                       value="member/template">
             </div>
         </form>
         <p>
@@ -208,6 +208,7 @@
         initShow();
         initBaseParam();
         initAutoComplete();
+        replaceAuthFromLocalStorage();
         $('.gotoTopLink').hide();
         $('.gotoTopLinkButton').hide();
     }
@@ -318,12 +319,13 @@
         var obj = {};
         for (var i = 0; i < gKeyCount; i++) {
             var k = $("#key_form_" + (i + 1)).find(".kk").val();
-            //var v = '"' + ($("#key_form_" + (i + 1)).find(".vv").val()) + '"';
-            var v = ($("#key_form_" + (i + 1)).find(".vv").val());
+            var v = '"' + ($("#key_form_" + (i + 1)).find(".vv").val()) + '"';//防止JS对超长数字进行自动处理
+            //var v = ($("#key_form_" + (i + 1)).find(".vv").val());
             if (k) {
                 if (isJson(v)) {
                     v = JSON.parse(v);
                 }
+
                 obj[k] = v;
             }
         }
@@ -439,6 +441,9 @@
                 $("#txt_base_params").val(str);
                 $("#txt_base_params").attr('rows', i + 2);
 
+                //reload auth data
+                replaceAuthFromLocalStorage();
+
                 // set custom params
                 setCustomParamsEmpty();
                 var html = getKeyInputHtml(custom_params);
@@ -492,9 +497,22 @@
                     $("#btn_login").addClass('disabled');
                     $("#btn_login").attr({"disabled": "disabled"});
                     $("#btn_login").html('login success');
+                    localStorage.setItem('api_auth_session', auth_session);
                 }
             }
         });
+    }
+
+    function replaceAuthFromLocalStorage(){
+        var auth_session=localStorage.getItem('api_auth_session');
+        //alert(auth_session);
+        if(auth_session){
+            var base_params = $("#txt_base_params").val();
+            var base_params_obj1 = JSON.parse(base_params);
+            var old_session = base_params_obj1.auth_session;
+            var new_base_params = base_params.replace(old_session, auth_session);
+            $("#txt_base_params").val(new_base_params);
+        }
     }
 </script>
 </body>
