@@ -2,6 +2,7 @@
  /* 基于Bootstrap Typeahead改造而来的自动完成插件
   * Author：F.L.F
   * Site: http://digdata.me
+  * update:更新字段完成，只保留高亮后的选项返回。
   * ================================= */
 
   var Autocomplete = function (element, options) {
@@ -102,12 +103,25 @@
 
       items = $(items).map(function (i, item) {
         i = $(that.options.item).attr(that.setValue(item))
-        i.find('a').html(that.highlighter(item))
-        return i[0]
+          // DannyWang Changed. raw is not 'if'
+          if(that.highlighter(item).indexOf("strong") >= 0 ){
+              i.find('a').html(that.highlighter(item))
+              return i[0]
+          }
       })
-
       items.first().addClass('active')
-      this.$menu.html(items)
+
+      // DannyWang Changed. raw is not 'if'
+      if(items.length>0){
+          console.log(items)
+          console.log(items.length)
+          this.$menu.html(items)
+      }else{
+          this.$menu.html('<li><a style="color: red" href="#">no this api !</a></li>')
+          $("#auto_drop").css('display','none');
+
+      }
+
       return this
     }
 
@@ -276,7 +290,7 @@
   $.fn.autocomplete.defaults = {
     source: []
   , items: 8
-  , menu: '<ul class="typeahead dropdown-menu"></ul>'
+  , menu: '<ul id="auto_drop" class="typeahead dropdown-menu"></ul>'
   , item: '<li><a href="#"></a></li>'
   , minLength: 1
   , delay: 500
